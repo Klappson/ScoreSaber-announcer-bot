@@ -7,7 +7,7 @@ from math import ceil
 
 api_cooldown = [0]
 request_cache = {}
-user_agent = {'User-agent': 'private_score_saber_dc_bot_Klappson#0110'}
+user_agent = {'User-agent': 'scoresaber_dc_announcer_Klappson#0110'}
 profile_name_url = "https://new.scoresaber.com/api/players/by-name/{0}"
 profile_id = "https://new.scoresaber.com/api/player/{0}/full"
 scores_id_page = "https://new.scoresaber.com/api/player/{0}/scores/recent/{1}"
