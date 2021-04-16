@@ -1,9 +1,10 @@
 import discord
 import bot_utils.db_handler as dbh
 from os.path import join
-from asyncio import sleep, run
+from asyncio import sleep
 from bot_utils.player import Player
-from config import dc_token, channel_id, monitored_players
+from config import dc_token, channel_id, monitored_players,\
+    api_score_search_interval
 
 scoresaber_icon_url = "https://pbs.twimg.com/profile_images/1346980795513139201/rYiHR2pu_400x400.png"
 song_picture = "http://new.scoresaber.com/api/static/covers/{0}.png"
@@ -50,17 +51,10 @@ async def announce_loop(bot: BotInstance):
 
     while True:
         await announce_new_scores(bot)
-        print(5)
-        await sleep(60)
-        print(4)
-        await sleep(60)
-        print(3)
-        await sleep(60)
-        print(2)
-        await sleep(60)
-        print(1)
-        await sleep(60)
-        print(0)
+
+        for i in range(api_score_search_interval):
+            print(f"{i}/{api_score_search_interval}")
+            await sleep(60)
 
 
 def pretty_difficulty(difficulty_raw):
@@ -73,7 +67,7 @@ def pretty_difficulty(difficulty_raw):
 
 def get_embed(score_data, player_name):
     embed = discord.Embed(title=score_data["songName"], color=0xc20000)
-    embed.set_author(name="New Score bc {0}".format(player_name),
+    embed.set_author(name="New Score by {0}".format(player_name),
                      icon_url=scoresaber_icon_url)
     embed.set_thumbnail(url=song_picture.format(score_data["songHash"]))
     embed.add_field(name="Score", value=score_data["score"], inline=True)
