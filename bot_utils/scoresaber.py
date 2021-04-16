@@ -2,10 +2,11 @@ import requests
 import json
 import asyncio
 from config import api_request_cooldown
-from time import time, sleep
+from time import time
 from math import ceil
 
 api_cooldown = [0]
+request_cache = {}
 user_agent = {'User-agent': 'private_score_saber_dc_bot_Klappson#0110'}
 profile_name_url = "https://new.scoresaber.com/api/players/by-name/{0}"
 profile_id = "https://new.scoresaber.com/api/player/{0}/full"
@@ -30,7 +31,7 @@ async def get_latest_song(player_id):
 
 async def get_full_profile(player_id, retries=2) -> dict:
     return await api_request(
-        url=profile_name_url.format(player_id),
+        url=profile_id.format(player_id),
         retries=retries
     )
 
@@ -43,22 +44,40 @@ async def search_player(player_name, retries=2) -> list[dict]:
     return api_respo["players"]
 
 
-async def api_request(url: str, retries=0) -> dict:
-    since_last_request = int(time()) - api_cooldown[0]
+def check_cache(url: str):
+    if url not in request_cache:
+        print(f"{url} is not cached")
+        return None
+    cache_tupel = request_cache[url]
+    cache_age = int(time()) - cache_tupel[0]
 
+    if cache_age > 60:
+        print(f"{url} is cached but to old ({cache_age}s)")
+        return None
+
+    print(f"{url} is still cached ({cache_age}s)")
+    return cache_tupel[1]
+
+
+async def api_request(url: str, retries=0) -> dict:
+    cache_result = check_cache(url)
+    if cache_result is not None:
+        return cache_result
+
+    since_last_request = int(time()) - api_cooldown[0]
     if since_last_request < api_request_cooldown:
         sleep_time = ceil(api_request_cooldown - since_last_request)
         print(f"Waiting {sleep_time} seconds before next api-request")
         await asyncio.sleep(sleep_time)
 
-    def retry(ex_msg=""):
+    async def retry(ex_msg=""):
+        if ex_msg != "":
+            print(ex_msg)
         if retries > 0:
             print(f"Request Failed! Retrying... {retries}")
             await asyncio.sleep(10)
             return await api_request(url, (retries - 1))
         else:
-            if ex_msg != "":
-                print(ex_msg)
             raise IOError(f"Ran out of retries for {url}")
 
     try:
@@ -67,9 +86,11 @@ async def api_request(url: str, retries=0) -> dict:
         api_cooldown[0] = int(time())
 
         if request_result.status_code != 200:
-            retry("HTTP-Code is not 200")
+            return await retry("HTTP-Code is not 200")
 
         clean_result = request_result.text.replace("'", "`")
-        return json.loads(clean_result)
+        retu = json.loads(clean_result)
+        request_cache[url] = (int(time()), retu)
+        return retu
     except Exception as e:
-        retry(repr(e))
+        return await retry(repr(e))
