@@ -12,13 +12,17 @@ Discord-Channel.
 # Setup
 1. Clone this Repository
 ````shell
-git clone <link to this repo>
+git clone https://github.com/Klappson/ScoreSaber-announcer-bot
+````
+2. Install `libpq-dev`. This is needed to build `psycopg2`
+````shell
+sudo apt-get install libpq-dev
 ````
 2. Install required packages
 ````shell
 pip install -r requirements.txt
 ````
-3. Adjust the config
+3. Adjust the config.py
 4. Run the bot
 ````shell
 python bot.py
@@ -26,7 +30,7 @@ python bot.py
 5. Profit
 
 # Known Issues
-* SSLCertVerification Shizzle
+* SSLCertVerification shizzle
     * Install <a href="https://crt.sh/?id=1">this</a> certificate
     * The download is hidden on the bottom left
     
